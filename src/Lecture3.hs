@@ -233,8 +233,20 @@ types that can have such an instance.
 -- instance Foldable Weekday where
 -- instance Foldable Gold where
 -- instance Foldable Reward where
--- instance Foldable List1 where
--- instance Foldable Treasure where
+instance Foldable List1 where
+    foldr f a (List1 x []) = f x a
+    foldr f a (List1 x xl) = f x (foldr f a xl)
+
+    foldMap f (List1 x []) = f x 
+    foldMap f (List1 x x1) = f x <> foldMap f x1
+
+
+instance Foldable Treasure where
+    foldr _ z NoTreasure = z 
+    foldr f z (SomeTreasure a) = f a z
+
+    foldMap _ NoTreasure= mempty
+    foldMap f (SomeTreasure a) = f a
 
 {-
 
@@ -249,8 +261,14 @@ types that can have such an instance.
 -- instance Functor Weekday where
 -- instance Functor Gold where
 -- instance Functor Reward where
--- instance Functor List1 where
--- instance Functor Treasure where
+--
+instance Functor List1 where
+    fmap f (List1 x []) = List1 (f x) []
+    fmap f (List1 x xl) = List1 (f x) (fmap f xl)
+
+instance Functor Treasure where
+    fmap _ NoTreasure = NoTreasure
+    fmap f (SomeTreasure a) = SomeTreasure $ f a
 
 {- | Functions are first-class values in Haskell. This means that they
 can be even stored inside other data types as well!
