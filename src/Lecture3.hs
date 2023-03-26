@@ -113,9 +113,11 @@ newtype Gold = Gold
 
 -- | Addition of gold coins.
 instance Semigroup Gold where
+    Gold x <> Gold y = Gold (x + y)
 
 
 instance Monoid Gold where
+    mempty = Gold 0
 
 
 {- | A reward for completing a difficult quest says how much gold
@@ -130,9 +132,10 @@ data Reward = Reward
     } deriving (Show, Eq)
 
 instance Semigroup Reward where
-
+    Reward x1 x2 <> Reward y1 y2 = Reward (x1 <> y1) (x2 || y2)
 
 instance Monoid Reward where
+    mempty = Reward mempty False 
 
 
 {- | 'List1' is a list that contains at least one element.
