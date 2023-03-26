@@ -94,7 +94,10 @@ weekday to the second.
 >>> daysTo Friday Wednesday
 5
 -}
-daysTo = error "TODO"
+daysTo :: Weekday -> Weekday -> Int
+daysTo d1 d2 
+    | d1 == d2 = 0 
+    | otherwise = 1 + daysTo (next d1) d2
 
 {-
 
