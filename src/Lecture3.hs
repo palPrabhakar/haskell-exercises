@@ -33,6 +33,7 @@ module Lecture3
     , appendDiff3
     , apply
     ) where
+import Control.Arrow (ArrowApply(app))
 
 -- VVV If you need to import libraries, do it after this line ... VVV
 
@@ -195,7 +196,12 @@ together only different elements.
 Product {getProduct = 6}
 
 -}
-appendDiff3 = error "TODO"
+appendDiff3 :: (Eq a, Semigroup a) => a -> a -> a -> a
+appendDiff3 a b c 
+    | a == b && a == c = a
+    | a == b = a <> c
+    | a /= b && b /= c && a /= c = a <> b <> c 
+    | otherwise  = a <> b
 
 {-
 
