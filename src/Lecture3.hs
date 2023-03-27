@@ -287,4 +287,5 @@ Just [8,9,10]
 [8,20,3]
 
 -}
-apply = error "TODO"
+apply :: Functor f => b -> f (b -> b) -> f b
+apply b = fmap (\a -> a b)
