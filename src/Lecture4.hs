@@ -101,6 +101,7 @@ where
 
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Semigroup (Max (..), Min (..), Semigroup (..), Sum (..))
+import Data.Maybe (isNothing, fromJust)
 import Lecture2 (dropSpaces)
 import Text.Read (readMaybe)
 
@@ -189,7 +190,7 @@ string.
 If both strings have the same length, return the first one.
 -}
 instance Semigroup MaxLen where
-    MaxLen x <> MaxLen y = if length y > length x then MaxLen y else MaxLen x
+  MaxLen x <> MaxLen y = if length y > length x then MaxLen y else MaxLen x
 
 {-
 It's convenient to represent our stats as a data type that has
@@ -216,19 +217,19 @@ The 'Stats' data type has multiple fields. All these fields have
 instance for the 'Stats' type itself.
 -}
 
-instance Semigroup Stats where 
-    Stats pos1 sum1 amax1 amin1 smax1 smin1 bmax1 bmin1 long1 <> Stats pos2 sum2 amax2 amin2 smax2 smin2 bmax2 bmin2 long2 = Stats {
-        statsTotalPositions = pos1 <> pos2
-    ,   statsTotalSum = sum1 <> sum2
-    ,   statsAbsoluteMax = amax1 <> amax2
-    ,   statsAbsoluteMin = amin1 <> amin2 
-    ,   statsSellMax = smax1 <> smax2 
-    ,   statsSellMin = smin1 <> smin2 
-    ,   statsBuyMax = bmax1 <> bmax2
-    ,   statsBuyMin = bmin1 <> bmin2 
-    ,   statsLongest = long1 <> long2
-    }
-    
+instance Semigroup Stats where
+  Stats pos1 sum1 amax1 amin1 smax1 smin1 bmax1 bmin1 long1 <> Stats pos2 sum2 amax2 amin2 smax2 smin2 bmax2 bmin2 long2 =
+    Stats
+      { statsTotalPositions = pos1 <> pos2,
+        statsTotalSum = sum1 <> sum2,
+        statsAbsoluteMax = amax1 <> amax2,
+        statsAbsoluteMin = amin1 <> amin2,
+        statsSellMax = smax1 <> smax2,
+        statsSellMin = smin1 <> smin2,
+        statsBuyMax = bmax1 <> bmax2,
+        statsBuyMin = bmin1 <> bmin2,
+        statsLongest = long1 <> long2
+      }
 
 {-
 The reason for having the 'Stats' data type is to be able to convert
@@ -244,17 +245,18 @@ row in the file.
 -}
 
 rowToStats :: Row -> Stats
-rowToStats (Row rp rt rc) = Stats {
-    statsTotalPositions = 1
-,   statsTotalSum = if rt == Buy then Sum (-rc) else Sum (rc)
-,   statsAbsoluteMax = Max rc
-,   statsAbsoluteMin = Min rc
-,   statsSellMax =  if rt == Buy then Nothing else Just (Max rc)
-,   statsSellMin =  if rt == Buy then Nothing else Just (Min rc)
-,   statsBuyMax =  if rt == Buy then Just (Max rc) else Nothing
-,   statsBuyMin =  if rt == Buy then Just (Min rc) else Nothing
-,   statsLongest = MaxLen rp
-}
+rowToStats (Row rp rt rc) =
+  Stats
+    { statsTotalPositions = 1,
+      statsTotalSum = if rt == Buy then Sum (-rc) else Sum (rc),
+      statsAbsoluteMax = Max rc,
+      statsAbsoluteMin = Min rc,
+      statsSellMax = if rt == Buy then Nothing else Just (Max rc),
+      statsSellMin = if rt == Buy then Nothing else Just (Min rc),
+      statsBuyMax = if rt == Buy then Just (Max rc) else Nothing,
+      statsBuyMin = if rt == Buy then Just (Min rc) else Nothing,
+      statsLongest = MaxLen rp
+    }
 
 {-
 Now, after we learned to convert a single row, we can convert a list of rows!
@@ -280,7 +282,7 @@ implement the next task.
 -}
 
 combineRows :: NonEmpty Row -> Stats
-combineRows = error "TODO"
+combineRows rows = sconcat $ fmap rowToStats rows
 
 {-
 After we've calculated stats for all rows, we can then pretty-print
@@ -291,7 +293,16 @@ you can return string "no value".
 -}
 
 displayStats :: Stats -> String
-displayStats = error "TODO"
+displayStats (Stats (Sum pos) (Sum ssum) (Max amax) (Min amin) smax smin bmax bmin (MaxLen long)) = 
+    "Total positions        : " ++ show pos ++ "\n\
+    \Total final balance    : " ++ show ssum ++ "\n\
+    \Biggest absolute cost  : " ++ show amax ++ "\n\
+    \Smallest absolute cost : " ++ show amin ++ "\n\
+    \Max earning            : " ++ if isNothing smax then "no value" else let Max x1 = fromJust smax in show x1 ++ "\n\
+    \Min earning            : " ++ if isNothing smin then "no value" else let Min x2 = fromJust smin in show x2 ++ "\n\
+    \Max spending           : " ++ if isNothing bmax then "no value" else let Max x3 = fromJust bmax in show x3 ++ "\n\
+    \Min spending           : " ++ if isNothing bmin then "no value" else let Min x4 = fromJust bmin in show x4 ++ "\n\
+    \Longest product name   : " ++ long
 
 {-
 Now, we definitely have all the pieces in places! We can write a
