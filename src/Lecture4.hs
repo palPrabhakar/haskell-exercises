@@ -188,7 +188,8 @@ string.
 
 If both strings have the same length, return the first one.
 -}
-instance Semigroup MaxLen
+instance Semigroup MaxLen where
+    MaxLen x <> MaxLen y = if length y > length x then MaxLen y else MaxLen x
 
 {-
 It's convenient to represent our stats as a data type that has
@@ -215,7 +216,19 @@ The 'Stats' data type has multiple fields. All these fields have
 instance for the 'Stats' type itself.
 -}
 
-instance Semigroup Stats
+instance Semigroup Stats where 
+    Stats pos1 sum1 amax1 amin1 smax1 smin1 bmax1 bmin1 long1 <> Stats pos2 sum2 amax2 amin2 smax2 smin2 bmax2 bmin2 long2 = Stats {
+        statsTotalPositions = pos1 <> pos2
+    ,   statsTotalSum = sum1 <> sum2
+    ,   statsAbsoluteMax = amax1 <> amax2
+    ,   statsAbsoluteMin = amin1 <> amin2 
+    ,   statsSellMax = smax1 <> smax2 
+    ,   statsSellMin = smin1 <> smin2 
+    ,   statsBuyMax = bmax1 <> bmax2
+    ,   statsBuyMin = bmin1 <> bmin2 
+    ,   statsLongest = long1 <> long2
+    }
+    
 
 {-
 The reason for having the 'Stats' data type is to be able to convert
@@ -231,7 +244,17 @@ row in the file.
 -}
 
 rowToStats :: Row -> Stats
-rowToStats = error "TODO"
+rowToStats (Row rp rt rc) = Stats {
+    statsTotalPositions = 1
+,   statsTotalSum = if rt == Buy then Sum (-rc) else Sum (rc)
+,   statsAbsoluteMax = Max rc
+,   statsAbsoluteMin = Min rc
+,   statsSellMax =  if rt == Buy then Nothing else Just (Max rc)
+,   statsSellMin =  if rt == Buy then Nothing else Just (Min rc)
+,   statsBuyMax =  if rt == Buy then Just (Max rc) else Nothing
+,   statsBuyMin =  if rt == Buy then Just (Min rc) else Nothing
+,   statsLongest = MaxLen rp
+}
 
 {-
 Now, after we learned to convert a single row, we can convert a list of rows!
