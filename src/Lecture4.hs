@@ -99,6 +99,8 @@ module Lecture4
   )
 where
 
+import System.Environment (getArgs)
+import System.FilePath
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Semigroup (Max (..), Min (..), Semigroup (..), Sum (..))
 import Data.Maybe (isNothing, fromJust, mapMaybe)
@@ -322,9 +324,9 @@ the file doesn't have any products.
 -}
 
 calculateStats :: String -> String
-calculateStats content = let lc = lines content in 
-    if valid lc then 
-        let rows = mapMaybe parseRow lc in case rows of 
+calculateStats content = let file = lines content in 
+    if valid file then 
+        let rows = mapMaybe parseRow file in case rows of 
             [] -> "File does't have any products"
             (x:xs) -> displayStats $ combineRows (x :| xs) 
     else 
@@ -344,7 +346,10 @@ Use functions 'readFile' and 'putStrLn' here.
 -}
 
 printProductStats :: FilePath -> IO ()
-printProductStats = error "TODO"
+printProductStats filePath = if isValid filePath then 
+        readFile filePath >>= \file -> putStrLn $ calculateStats file 
+    else
+        putStrLn "Invalid file path"
 
 {-
 Okay, I lied. This is not the last thing. Now, we need to wrap
@@ -359,8 +364,11 @@ CLI args:
 https://hackage.haskell.org/package/base-4.16.0.0/docs/System-Environment.html#v:getArgs
 -}
 
+
 main :: IO ()
-main = error "TODO"
+main = getArgs >>= \args -> case args of
+    [] -> putStrLn "No file path given" 
+    (path:_) -> printProductStats path
 
 {-
 And that's all!
