@@ -101,7 +101,7 @@ where
 
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Semigroup (Max (..), Min (..), Semigroup (..), Sum (..))
-import Data.Maybe (isNothing, fromJust)
+import Data.Maybe (isNothing, fromJust, mapMaybe)
 import Lecture2 (dropSpaces)
 import Text.Read (readMaybe)
 
@@ -322,7 +322,19 @@ the file doesn't have any products.
 -}
 
 calculateStats :: String -> String
-calculateStats = error "TODO"
+calculateStats content = let lc = lines content in 
+    if valid lc then 
+        let rows = mapMaybe parseRow lc in case rows of 
+            [] -> "File does't have any products"
+            (x:xs) -> displayStats $ combineRows (x :| xs) 
+    else 
+        "Invalid file"
+    where 
+        valid :: [String] -> Bool
+        valid [] = False
+        valid [_] = False
+        valid (x:_) = x == "Name,Type,Amount"
+
 
 {- The only thing left is to write a function with side-effects that
 takes a path to a file, reads its content, calculates stats and prints
